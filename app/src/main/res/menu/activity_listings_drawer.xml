@@ -3,14 +3,14 @@
 
     <group>
         <item android:id="@+id/nav_listings" android:icon="@android:drawable/ic_menu_compass"
-            android:title="@string/action_listings" />
+            android:title="@string/navigate_listings" />
         <item android:id="@+id/nav_history" android:icon="@android:drawable/ic_menu_recent_history"
-            android:title="@string/action_history" />
+            android:title="@string/navigate_history" />
     </group>
 
     <group android:checkableBehavior="none">
         <item android:id="@+id/nav_settings" android:icon="@android:drawable/ic_menu_manage"
-            android:title="@string/action_settings" />
+            android:title="@string/navigate_settings" />
         <!--<item android:id="@+id/nav_gallery" android:icon="@android:drawable/ic_menu_gallery"-->
             <!--android:title="Gallery" />-->
         <!--<item android:id="@+id/nav_slideshow" android:icon="@android:drawable/ic_menu_slideshow"-->

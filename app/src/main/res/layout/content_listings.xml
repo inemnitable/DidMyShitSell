@@ -15,12 +15,12 @@
         android:layout_height="wrap_content"
         tools:text="5 gold" />
 
-    <TextView android:id="@+id/buy_listings"
+    <ListView android:id="@+id/buy_listings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:text="buy listing here" />
 
-    <TextView android:id="@+id/sell_listings"
+    <ListView android:id="@+id/sell_listings"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         tools:text="sell listing here" />

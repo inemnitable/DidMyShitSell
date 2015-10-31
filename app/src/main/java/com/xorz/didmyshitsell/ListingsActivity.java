@@ -8,19 +8,31 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
+import com.xorz.didmyshitsell.adapters.ListingsAdapter;
+import com.xorz.didmyshitsell.objects.Transaction;
+import com.xorz.didmyshitsell.objects.Wallet;
+import com.xorz.didmyshitsell.utilities.GW2Items;
+import com.xorz.didmyshitsell.utilities.Utilities;
 
-import java.io.IOError;
+import org.json.JSONException;
+
 import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class ListingsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -33,9 +45,13 @@ public class ListingsActivity extends AppCompatActivity
     private final static String AUTH_HEADER_KEY = "Authorization";
 
     private boolean isQueryingAPI = false;
-    private View buyList;
-    private View sellList;
+    private ListView buyList;
+    private ListView sellList;
     private View wallet;
+    private ListingsAdapter buyListAdapter;
+    private ListingsAdapter sellListAdapter;
+
+    public static SparseArray<String> itemNames = new SparseArray<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,11 +105,16 @@ public class ListingsActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         // Remember the views
-        buyList = findViewById(R.id.buy_listings);
-        sellList = findViewById(R.id.sell_listings);
+        buyList = (ListView) findViewById(R.id.buy_listings);
+        sellList = (ListView) findViewById(R.id.sell_listings);
         wallet = findViewById(R.id.wallet);
 
-        //Populate the listings, ie. do the actual app stuff
+        buyListAdapter = new ListingsAdapter(this, new ArrayList<Transaction>());
+
+        sellListAdapter = new ListingsAdapter(this, new ArrayList<Transaction>());
+        sellList.setAdapter(sellListAdapter);
+
+        //Populate the transaction listings, ie. do the actual app stuff
         requestListingsInfo();
     }
 
@@ -103,13 +124,13 @@ public class ListingsActivity extends AppCompatActivity
 
         String authHeader = "Bearer " + ((ShitSellingApplication) getApplication()).getUserAPIKey();
 
-        // build the buy listings request
+        // build the buy menu_listings request
         final Request buyRequest = new Request.Builder()
                 .url(BUY_LISTINGS_ENDPOINT)
                 .header(AUTH_HEADER_KEY, authHeader)
                 .build();
 
-        // build the sell listings request
+        // build the sell menu_listings request
         final Request sellRequest = new Request.Builder()
                 .url(SELL_LISTINGS_ENDPOINT)
                 .header(AUTH_HEADER_KEY, authHeader)
@@ -125,36 +146,8 @@ public class ListingsActivity extends AppCompatActivity
         Thread httpThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                OkHttpClient client = ((ShitSellingApplication) getApplication()).getHttpClient();
-
-                // execute the request for buy listings
-                try {
-                    // hit the api server
-                    final Response buyResponse = client.newCall(buyRequest).execute();
-
-                    // post back to UI thread to deal with the data
-                    buyList.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            updateBuyList(buyResponse);
-                        }
-                    });
-                } catch (IOException e) {
-                    Log.e(TAG, "IOException requesting buy listings", e);
-                }
-
-                // sells
-                try {
-                    final Response sellResponse = client.newCall(sellRequest).execute();
-                    sellList.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            updateSellList(sellResponse);
-                        }
-                    });
-                } catch (IOException e) {
-                    Log.e(TAG, "IOException requesting buy listings", e);
-                }
+                OkHttpClient client = ShitSellingApplication.getHttpClient();
+                List<Integer> namesToQuery = new ArrayList<>();
 
                 // gold
                 try {
@@ -169,34 +162,106 @@ public class ListingsActivity extends AppCompatActivity
                     Log.e(TAG, "IOException requesting wallet", e);
                 }
 
+                // execute the request for buy menu_listings
+                try {
+                    // hit the api server
+                    final Response buyResponse = client.newCall(buyRequest).execute();
+
+                    String json = buyResponse.body().string();
+                    final List<Transaction> list = Utilities.parseTransactions(json);
+
+                    for (Transaction t : list) {
+                        namesToQuery.add(t.itemId);
+                    }
+
+                    // post back to UI thread to deal with the data
+                    buyList.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateBuyList(list);
+                        }
+                    });
+                } catch (IOException e) {
+                    Log.e(TAG, "IOException requesting buy listings", e);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Exception parsing response JSON", e);
+                } catch (ParseException e) {
+                    Log.e(TAG, "Exception parsing date formats", e);
+                }
+
+                // sells
+                try {
+                    // Execute the api call
+                    final Response sellResponse = client.newCall(sellRequest).execute();
+
+                    // Get JSON from the response and parse it into POJOs
+                    String json = sellResponse.body().string();
+                    final List<Transaction> list = Utilities.parseTransactions(json);
+
+                    // Add all the item ids in the transactions to the list of item names to get
+                    for (Transaction t : list) {
+                        namesToQuery.add(t.itemId);
+                    }
+
+                    // Add the transactions to the views
+                    sellList.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateSellList(list);
+                        }
+                    });
+                } catch (IOException e) {
+                    Log.e(TAG, "IOException requesting buy listings", e);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Exception parsing response JSON", e);
+                } catch (ParseException e) {
+                    Log.e(TAG, "Exception parsing date format", e);
+                }
+
+                isQueryingAPI = false;
+
+                GW2Items.retrieveItemNames(namesToQuery, ListingsActivity.this, new Runnable() {
+                    @Override
+                    public void run() {
+                        sellListAdapter.notifyDataSetChanged();
+                    }
+                });
+
             }
         });
 
         httpThread.start();
     }
 
-    private void updateBuyList (Response resp) {
-        try {
-            ((TextView) buyList).setText(resp.body().string());
-        } catch (IOException e) {
-            Log.e(TAG, "IOException getting response body I don't even know how this happens?");
-        }
+    private void updateBuyList (List<Transaction> list) {
+        buyListAdapter.clear();
+        buyListAdapter.addAll(list);
     }
 
-    private void updateSellList(Response resp) {
-        try {
-            ((TextView) sellList).setText(resp.body().string());
-        } catch (IOException e) {
-            Log.e(TAG, "IOException getting response body I don't even know how this happens?");
-        }
+    private void updateSellList(List<Transaction> list) {
+        // Reset and add all the transactions to the adapter
+        sellListAdapter.clear();
+        sellListAdapter.addAll(list);
     }
 
-    private void updateWallet(Response resp) {
+    private void updateWallet(Response resp){
+        String json;
         try {
-            ((TextView) wallet).setText(resp.body().string());
+            json = resp.body().string();
         } catch (IOException e) {
             Log.e(TAG, "IOException getting response body I don't even know how this happens?");
+            return;
         }
+
+        Wallet w;
+        try {
+            w = Utilities.parseWallet(json);
+        } catch (JSONException e) {
+            Log.e(TAG, "Exception while parsing response JSON", e);
+            return;
+        }
+
+        ((TextView) wallet).setText(Utilities.formatGold(w.gold));
     }
 
     @Override
@@ -212,7 +277,7 @@ public class ListingsActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.listings, menu);
+        getMenuInflater().inflate(R.menu.menu_listings, menu);
         return true;
     }
 
@@ -223,10 +288,9 @@ public class ListingsActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
+        if (id == R.id.action_refresh) {
+            requestListingsInfo();
+        }
 
         return super.onOptionsItemSelected(item);
     }

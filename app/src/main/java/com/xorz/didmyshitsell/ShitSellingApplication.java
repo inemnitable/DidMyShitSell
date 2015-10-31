@@ -5,17 +5,13 @@ import android.content.SharedPreferences;
 
 import com.squareup.okhttp.OkHttpClient;
 
-/**
- * Created by Adam on 10/30/2015.
- */
 public class ShitSellingApplication extends Application {
 
-    private String userAPIKey = "";
-    private OkHttpClient httpClient;
-
     private final static String PREFERENCE_KEY = "com.xorz.didmyshitsell";
-
     private final static String API_KEY_PREFERENCE = "api_key";
+
+    private String userAPIKey = "";
+    private static OkHttpClient httpClient;
 
     @Override
     public void onCreate() {
@@ -23,6 +19,12 @@ public class ShitSellingApplication extends Application {
 
         SharedPreferences prefs = getSharedPreferences(PREFERENCE_KEY, MODE_PRIVATE);
         userAPIKey = prefs.getString(API_KEY_PREFERENCE, "");
+
+        // TODO: create and initialize a thread pool
+    }
+
+    public String getUserAPIKey() {
+        return userAPIKey;
     }
 
     public void setUserAPIKey(String key) {
@@ -33,15 +35,11 @@ public class ShitSellingApplication extends Application {
             // and in persistent storage
             SharedPreferences.Editor prefs = getSharedPreferences(PREFERENCE_KEY, MODE_PRIVATE).edit();
             prefs.putString(API_KEY_PREFERENCE, key);
-            prefs.commit();
+            prefs.apply();
         }
     }
 
-    public String getUserAPIKey() {
-        return userAPIKey;
-    }
-
-    public OkHttpClient getHttpClient() {
+    public static OkHttpClient getHttpClient() {
         if (httpClient == null) {
             httpClient = new OkHttpClient();
         }
