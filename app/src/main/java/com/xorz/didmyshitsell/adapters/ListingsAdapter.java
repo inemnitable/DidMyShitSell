@@ -7,20 +7,15 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.xorz.didmyshitsell.ListingsActivity;
 import com.xorz.didmyshitsell.R;
 import com.xorz.didmyshitsell.objects.Transaction;
 import com.xorz.didmyshitsell.utilities.GW2Items;
 import com.xorz.didmyshitsell.utilities.Utilities;
 
-import java.util.List;
-
 public class ListingsAdapter extends ArrayAdapter<Transaction> {
-    private List<Transaction> transactions;
 
-    public ListingsAdapter(Context ctx, List<Transaction> transactions) {
+    public ListingsAdapter(Context ctx) {
         super(ctx, 0);
-        this.transactions = transactions;
     }
 
     @Override

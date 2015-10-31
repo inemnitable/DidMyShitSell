@@ -1,7 +1,5 @@
 package com.xorz.didmyshitsell.utilities;
 
-import android.util.SparseArray;
-
 import com.xorz.didmyshitsell.objects.Transaction;
 import com.xorz.didmyshitsell.objects.Wallet;
 
@@ -23,7 +21,7 @@ public class Utilities {
         JSONArray data = new JSONArray(walletJson);
         Wallet wallet = new Wallet();
 
-        for (int i=0; i<data.length(); i++) {
+        for (int i = 0; i < data.length(); i++) {
             JSONObject obj = data.getJSONObject(i);
             int type = obj.getInt("id");
             if (type == 1) {
@@ -38,7 +36,7 @@ public class Utilities {
         JSONArray data = new JSONArray(transactionJson);
         List<Transaction> transactions = new ArrayList<>();
 
-        for (int i=0; i<data.length(); i++) {
+        for (int i = 0; i < data.length(); i++) {
             JSONObject obj = data.getJSONObject(i);
             Transaction t = new Transaction(obj);
             transactions.add(t);
@@ -51,7 +49,7 @@ public class Utilities {
         JSONArray data = new JSONArray(json);
         Map<Integer, String> names = new HashMap<>();
 
-        for (int i=0; i<data.length(); i++) {
+        for (int i = 0; i < data.length(); i++) {
             JSONObject obj = data.getJSONObject(i);
             int id = obj.getInt("id");
             String name = obj.getString("name");
@@ -61,7 +59,7 @@ public class Utilities {
         return names;
     }
 
-    public static String formatGold(long amount){
+    public static String formatGold(long amount) {
         long gold = amount / 10000;
         long silver = (amount / 100) % 100;
         long copper = amount % 100;
@@ -75,7 +73,7 @@ public class Utilities {
             sb.append(i);
             sb.append(delim);
         }
-        sb.replace(sb.length()-delim.length(), sb.length(), "");
+        sb.replace(sb.length() - delim.length(), sb.length(), "");
         return sb.toString();
     }
 }

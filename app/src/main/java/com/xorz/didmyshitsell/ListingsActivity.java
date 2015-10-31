@@ -8,7 +8,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,8 +49,6 @@ public class ListingsActivity extends AppCompatActivity
     private View wallet;
     private ListingsAdapter buyListAdapter;
     private ListingsAdapter sellListAdapter;
-
-    public static SparseArray<String> itemNames = new SparseArray<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,13 +106,22 @@ public class ListingsActivity extends AppCompatActivity
         sellList = (ListView) findViewById(R.id.sell_listings);
         wallet = findViewById(R.id.wallet);
 
-        buyListAdapter = new ListingsAdapter(this, new ArrayList<Transaction>());
+        buyListAdapter = new ListingsAdapter(this);
+        buyList.setAdapter(buyListAdapter);
 
-        sellListAdapter = new ListingsAdapter(this, new ArrayList<Transaction>());
+        sellListAdapter = new ListingsAdapter(this);
         sellList.setAdapter(sellListAdapter);
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
         //Populate the transaction listings, ie. do the actual app stuff
-        requestListingsInfo();
+        if (findViewById(R.id.buy_listings) != null) {
+            requestListingsInfo();
+        }
     }
 
     private void requestListingsInfo() {
@@ -233,7 +239,7 @@ public class ListingsActivity extends AppCompatActivity
         httpThread.start();
     }
 
-    private void updateBuyList (List<Transaction> list) {
+    private void updateBuyList(List<Transaction> list) {
         buyListAdapter.clear();
         buyListAdapter.addAll(list);
     }
@@ -244,7 +250,7 @@ public class ListingsActivity extends AppCompatActivity
         sellListAdapter.addAll(list);
     }
 
-    private void updateWallet(Response resp){
+    private void updateWallet(Response resp) {
         String json;
         try {
             json = resp.body().string();
@@ -261,7 +267,7 @@ public class ListingsActivity extends AppCompatActivity
             return;
         }
 
-        ((TextView) wallet).setText(Utilities.formatGold(w.gold));
+        ((TextView) wallet).setText(String.format(Locale.US, "Total Funds: %s", Utilities.formatGold(w.gold)));
     }
 
     @Override
@@ -290,6 +296,7 @@ public class ListingsActivity extends AppCompatActivity
 
         if (id == R.id.action_refresh) {
             requestListingsInfo();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

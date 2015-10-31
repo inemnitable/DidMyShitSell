@@ -1,9 +1,7 @@
 package com.xorz.didmyshitsell.utilities;
 
 import android.app.Activity;
-import android.content.Context;
 import android.util.Log;
-import android.util.SparseArray;
 
 import com.squareup.okhttp.HttpUrl;
 import com.squareup.okhttp.OkHttpClient;
@@ -11,13 +9,11 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 import com.xorz.didmyshitsell.ShitSellingApplication;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,7 +47,7 @@ public class GW2Items {
 
         querying = true;
         // TODO: get item names from server
-        String query = Utilities.join(namesToGet,",");
+        String query = Utilities.join(namesToGet, ",");
         final Request req = new Request.Builder()
                 .url(HttpUrl.parse(ITEMS_ENDPOINT)
                         .newBuilder()
