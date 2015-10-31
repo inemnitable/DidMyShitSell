@@ -77,6 +77,8 @@ public class GW2Items {
                 if (ctx != null && !ctx.isFinishing() && callback != null) {
                     ctx.runOnUiThread(callback);
                 }
+
+                querying = false;
             }
         });
 
