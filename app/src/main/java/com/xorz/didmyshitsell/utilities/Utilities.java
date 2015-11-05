@@ -73,6 +73,7 @@ public class Utilities {
             sb.append(i);
             sb.append(delim);
         }
+        if (sb.length() == 0) return "";
         sb.replace(sb.length() - delim.length(), sb.length(), "");
         return sb.toString();
     }

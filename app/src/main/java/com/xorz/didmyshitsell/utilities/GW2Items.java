@@ -43,11 +43,16 @@ public class GW2Items {
             }
         }
 
+        if (namesToGet.size() == 0) return;
         if (querying) return;
 
         querying = true;
         // TODO: get item names from server
         String query = Utilities.join(namesToGet, ",");
+        Log.d(TAG, "query string is " + query);
+
+        namesToGet.clear();
+
         final Request req = new Request.Builder()
                 .url(HttpUrl.parse(ITEMS_ENDPOINT)
                         .newBuilder()
@@ -66,11 +71,15 @@ public class GW2Items {
                     names = Utilities.parseItems(json);
                 } catch (IOException e) {
                     Log.e(TAG, "IOException getting item info", e);
+                    querying = false;
                     return;
                 } catch (JSONException e) {
                     Log.e(TAG, "Error parsing JSON for items", e);
+                    querying = false;
                     return;
                 }
+
+                Log.d(TAG, "succeeding in downloading item names");
 
                 itemNames.putAll(names);
 
